@@ -32,6 +32,8 @@ Route::post('/posttidakbayar', [dashboardController::class, 'postTidakBayar']);
 
 Route::get('/pengisi_pelanggan', [dashboardController::class, 'pengisi_pelanggan']);
 
+Route::get('/print_invoice', [dashboardController::class, 'print_invoice']);
+
 
 Route::get('/fpdf', function () {
 

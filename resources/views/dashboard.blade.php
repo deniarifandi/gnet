@@ -255,7 +255,7 @@
           <div class="row">
             <div class="col-12" align="center">
 
-              <div class="custom-control custom-radio custom-control-inline">
+              <div class="custom-control custom-radio custom-control-inline" style="margin-top: 15px">
                 <input type="radio" class="custom-control-input" id="radio_belum_bayar" name="example" onchange="changeBayar(0)">
                 <label class="custom-control-label" for="radio_belum_bayar" ><h4>Belum Bayar</h4></label>
               </div>
@@ -267,8 +267,17 @@
             </div>
           </div>
 
+            <div class="row">
 
-          <input type="text" class="form-control" id="idbayar" name="idbayar" readonly="" >  
+                <div class="col-md-12" align="center">
+
+                    <button type="button" id="printinv_button" class="btn btn-success" style="margin-top: 25px"  onclick="print_invoice()" disabled="disable">Print Invoice.</button>
+                    
+                </div>
+                
+            </div>
+
+          {{-- <input type="text" class="form-control" id="idbayar" name="idbayar" readonly="" >   --}}
         </form>
       </div>
 
@@ -363,6 +372,7 @@
                         document.getElementById(cust_id+"_"+bulan).classList.remove("btn-danger");
                         document.getElementById(cust_id+"_"+bulan).innerHTML = "Sudah Bayar";
                         document.getElementById(cust_id+"_"+bulan).value = 1;
+                        document.getElementById("printinv_button").disabled = false;
                       }
                     });
                   $.ajax();
@@ -393,6 +403,7 @@
                             document.getElementById(cust_id+"_"+bulan).classList.remove("btn-success");
                             document.getElementById(cust_id+"_"+bulan).innerHTML = "Belum Bayar";
                             document.getElementById(cust_id+"_"+bulan).value = 0;
+                            document.getElementById("printinv_button").disabled = true;
                         }
                       });
                   $.ajax();
@@ -429,10 +440,19 @@
                   var bulan = str[2].value;
                   if (document.getElementById(cust_id+"_"+bulan).value == 0) {
                     document.getElementById("radio_belum_bayar").checked = true;  
+                    document.getElementById("printinv_button").disabled = true;
                   }else if(document.getElementById(cust_id+"_"+bulan).value == 1) {
                     document.getElementById("radio_sudah_bayar").checked = true;  
+                    document.getElementById("printinv_button").disabled = false;
                   }
                   
+                }
+
+                function print_invoice(){
+
+                     var str = $( "#modalbayar" ).serializeArray();
+                     console.log(str);
+                    window.open('{{ URL::to('/') }}/print_invoice?nama='+str[1].value+'&nomor='+str[0].value+'&id='+str[0].value+'&bulan='+str[2].value+'&tahun='+str[3].value+'&bayar=no_invoice');
                 }
 
                 function checkPage(){
