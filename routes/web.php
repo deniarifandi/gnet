@@ -35,12 +35,8 @@ Route::get('/pengisi_pelanggan', [dashboardController::class, 'pengisi_pelanggan
 
 Route::get('/fpdf', function () {
 
-   require('fpdf.php');
-
-	$pdf = new FPDF();
-	$pdf->AddPage();
-	$pdf->SetFont('Arial','B',16);
-	$pdf->Cell(40,10,'Hello World!');
-	$pdf->Output();
+   $pdf = App::make('dompdf.wrapper');
+	$pdf->loadHTML('<h1>Test</h1>');
+	return $pdf->stream();
 
 });
