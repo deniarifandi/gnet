@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App;
-
+use DateTime;
 
 class dashboardController extends Controller
 {
@@ -230,14 +230,28 @@ class dashboardController extends Controller
      	$nama_pelangggan = $_GET['nama'];
      	$nomor_pelanggan = $_GET['nomor'];
      	$id_pelanggan = $_GET['id'];
+
+     	$user = DB::table('customers')
+     	->select('nama', 'telepon', 'alamat')
+     	->where('customer_id','=',$id_pelanggan)
+     	->get();
+
+
+     	$alamat = $user[0]->alamat;
+
      	$bulan = $_GET['bulan'];
      	$tahun = $_GET['tahun'];
+
+
+     	$dateObj   = DateTime::createFromFormat('!m', $bulan);
+		$monthName = $dateObj->format('F'); // March
 
      	$timestamp = date("d/M/Y");
 
     	$pdf = App::make('dompdf.wrapper');
 		$pdf->loadHTML('
 
+						
 
 			<!doctype html>
 <html>
@@ -246,192 +260,124 @@ class dashboardController extends Controller
     <title>A simple, clean, and responsive HTML invoice template</title>
     
     <style>
-    .invoice-box {
-        max-width: 800px;
-        margin: auto;
-        padding: 30px;
-        border: 1px solid #eee;
-        box-shadow: 0 0 10px rgba(0, 0, 0, .15);
-        font-size: 16px;
-        line-height: 24px;
-        font-family: "Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif;
-        color: #555;
-    }
-    
-    .invoice-box table {
-        width: 100%;
-        line-height: inherit;
-        text-align: left;
-    }
-    
-    .invoice-box table td {
-        padding: 5px;
-        vertical-align: top;
-    }
-    
-    .invoice-box table tr td:nth-child(2) {
-        text-align: right;
-    }
-    
-    .invoice-box table tr.top table td {
-        padding-bottom: 10px;
-    }
-    
-    .invoice-box table tr.top table td.title {
-        font-size: 45px;
-        line-height: 45px;
-        color: #333;
-    }
-    
-    .invoice-box table tr.information table td {
-        padding-bottom: 40px;
-    }
-    
-    .invoice-box table tr.heading td {
-        background: #eee;
-        border-bottom: 1px solid #ddd;
-        font-weight: bold;
-    }
-    
-    .invoice-box table tr.details td {
-        padding-bottom: 20px;
-    }
-    
-    .invoice-box table tr.item td{
-        border-bottom: 1px solid #eee;
-    }
-    
-    .invoice-box table tr.item.last td {
-        border-bottom: none;
-    }
-    
-    .invoice-box table tr.total td:nth-child(2) {
-        border-top: 2px solid #eee;
-        font-weight: bold;
-    }
-    
-    @media only screen and (max-width: 600px) {
-        .invoice-box table tr.top table td {
-            width: 100%;
-            display: block;
-            text-align: center;
-        }
-        
-        .invoice-box table tr.information table td {
-            width: 100%;
-            display: block;
-            text-align: center;
-        }
-    }
-    
-    /** RTL **/
-    .rtl {
-        direction: rtl;
-        font-family: Tahoma, "Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif;
-    }
-    
-    .rtl table {
-        text-align: right;
-    }
-    
-    .rtl table tr td:nth-child(2) {
-        text-align: left;
-    }
-    </style>
+
+
+	</style>
+   
 </head>
 
 <body>
-    <div class="invoice-box">
-        <table cellpadding="0" cellspacing="0">
-            <tr class="top">
-                <td colspan="2">
-                    <table>
-                        <tr>
-                            <td class="title">
-                                <h1 style="margin-bottom: 0px; margin-left: 0px"> G-Net </h1>
-                                <h5 style="margin-top: 15px; margin-left: 5px; margin-bottom: 0px">INVOICE</h5>
-                            </td>
-                            
-                            <td style="padding-left: 10px">
-                                Invoice #: '.$id_bayar.'<br>
-                                Created: '.$timestamp.'<br>
-                                
-                            </td>
-                        </tr>
-                    </table>
-                </td>
-            </tr>
-            
-            <tr class="information">
-                <td colspan="2">
-                    <table>
-                        <tr>
-                            <td style="padding-left: 10px; margin-top: 0px">
-                                 Dusun Krajan 2, RT 002RW 012, <br>
-                                 Krajan I, Grenden, Puger, <br>
-                                 Kabupaten Jember, Jawa Timur 68164
-                            </td>
-                            
-                            <td style="text-align:left">
-                                id   : '.$id_pelanggan.'<br>
-                                nama 	:'.$nama_pelangggan.'<br>
-                                nomor 	:'.$nomor_pelanggan.'<br>
-                            </td>
-                        </tr>
-                    </table>
-                </td>
-            </tr>
-            
-        
-            <tr class="heading">
-                <td>
-                    Item
-                </td>
-                
-                <td>
-                    Price
-                </td>
-            </tr>
-       
-            <tr class="item last">
-                <td>
-                    Wi-Fi <br>
-                    '.$bulan.', '.$tahun.'
-                </td>
-                
-                <td>
-                    Rp. 100.000,-
-                </td>
-            </tr>
-            
-            <tr class="total">
-                <td></td>
-                
-                <td>
-                   Total: Rp. 100.000,-
-                </td>
-            </tr>
+    
+	<h1 style="text-align:center; color:grey; font-size: 50px; margin-bottom: 0px"> G-NET </h1>
+	<h5 style="text-align:center; margin-top: 10px; margin-bottom: 0px">Dusun Krajan 2, RT 002RW 012, Krajan I, Grenden, Puger, Kabupaten Jember, Jawa Timur 68164</h5>
+	<hr style="height: 2px; background-color: red">
+	<h2 style="text-align:center; "> INVOICE </h2>
 
-            <tr style="text-align: right;">
-                
-                            <td>
-                                
-                            </td>
-                            <td style="padding-top: 70px">
-                                Admin G-Net
-                                <br>
-                                <br>
-                                <br>
-                                <br>
-                                <br>
-                                ----------------------
-                            </td>
-            </tr>
+	<table style="width: 100%;">
+	
+	  <tr style="border: 0px">
+	    <td style="width: 20%; border: 0px">ID Pelanggan</td>
+	    <td style="border: 0px"> : '.$id_pelanggan.'</td>
+	    
+	  </tr>
+	  <tr>
+	    <td style="border: 0px">Nama Pelanggan</td>
+	    <td style="border: 0px"> : '.$nama_pelangggan.'</td>
+	  
+	  </tr>
+	  <tr>
+	    <td style="border: 0px">Alamat</td>
+	    <td style="border: 0px">: '.$alamat.'</td>
+	  </tr>
+	  <tr>
+	    <td style="border: 0px">Jatuh Tempo</td>
+	    <td style="border: 0px">: 20 '.$monthName.'</td>
+	  </tr>
+	</table>
+	<br>
+	
 
-        </table>
-    </div>
+	<style type="text/css">
+		td, th {
+			  border: 1px solid #dddddd;
+			  text-align: left;
+			  padding: 8px;
+			}
+	</style>
+
+	<h2 style="text-align: center">Pembayaran Terakhir	</h2>
+	<table style="width: 100%;">
+		<tr>
+			<td style="background-color: #e2e2e2">Pembayaran Terakhir</td>
+			<td style="background-color: #e2e2e2">Bulan</td>
+			<td style="background-color: #e2e2e2">Nominal</td>
+		</tr>
+		<tr>
+			<td>12 Januari, 2020</td>
+			<td>Januari 2002</td>
+			<td>100.000</td>
+		</tr>
+	</table>
+
+	<h2 style="text-align: center">Tagihan Bulan Ini </h2>
+	<table style="width: 100%;">
+		<tr>
+			<td style="background-color: #e2e2e2">Tagihan Bulan Ini</td>
+			<td style="background-color: #e2e2e2">Bulan</td>
+			<td style="background-color: #e2e2e2">Nominal</td>
+		</tr>
+		<tr>
+			<td>12 Januari, 2020</td>
+			<td>Januari 2002</td>
+			<td>100.000</td>
+		</tr>
+		<tr>
+			<td style="border: 0px"></td>
+			<td>Total</td>
+			<td>100.000</td>
+		</tr>
+		<tr>
+			<td style="border: 0px"></td>
+			<td>Terbilang</td>
+			<td>Seratus Ribu Rupiah</td>
+		</tr>
+	</table>
+	<br>
+	<br>
+	<br>
+	<br>
+	<table style="width: 100%">
+		<tr>
+			<td style="border: 0px"></td>
+			<td style="border: 0px"></td>
+			<td style="width: 30%; border: 0px">Admin G-Net</td>
+		</tr>
+		<tr>
+			<td style="border: 0px"></td>
+		</tr>
+		<tr>
+			<td style="border: 0px"></td>
+		</tr>
+		<tr>
+			<td style="border: 0px"></td>
+		</tr>
+		<tr>
+			<td style="border: 0px"></td>
+		</tr>
+		<tr >
+			<td style="border: 0px"></td>
+			<td style="border: 0px"></td>
+			<td style="width: 30%; border: 0px; vertical-align: bottom;">..................................</td>
+		</tr>
+	</table>
+
+
 </body>
 </html>
+
+
+
+
 
 
 			');
