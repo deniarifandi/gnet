@@ -7,6 +7,11 @@ use Illuminate\Support\Facades\DB;
 use App;
 use DateTime;
 
+
+// namespace App\Exceptions;
+
+use Exception;
+
 class dashboardController extends Controller
 {
      public function __construct()
@@ -61,9 +66,10 @@ class dashboardController extends Controller
     public function func_tambah_pelanggan(Request $request){
     	$nama = $request->input('nama');
     	$telepon = $request->input('telepon');
+    	$alamat = $request->input('alamat');
 
     	$query = DB::table('customers')->insert(
-		    ['nama' => $nama, 'telepon' => $telepon]
+		    ['nama' => $nama, 'telepon' => $telepon, 'alamat' => $alamat]
 		);
 
 		if ($query) {
@@ -114,21 +120,24 @@ class dashboardController extends Controller
     public function getCustomer($tahun,$page,$search){
     	$stringResult = "";
 
+    	
     	$stringResult.= "[";
 
-    	if ($search == null) {
-    		$customers = DB::table('customers')
-    				
-			    	->offset(5*$page)
-                	->limit(5)
-                	->get();
-    	}else{
-    		$customers = DB::table('customers')
+    	if ($search != "alldata") {
+             $customers = DB::table('customers')
     				
     				->where('nama','like','%'.$search.'%')
 			    	->offset(5*$page)
                 	->limit(5)
                 	->get();
+    	}else{
+
+    		$customers = DB::table('customers')
+    				
+			    	->offset(5*$page)
+                	->limit(5)
+                	->get();
+    		
     	}
     	
     	if (count($customers) != 0) {
@@ -230,18 +239,53 @@ class dashboardController extends Controller
      	$nama_pelangggan = $_GET['nama'];
      	$nomor_pelanggan = $_GET['nomor'];
      	$id_pelanggan = $_GET['id'];
+     	$bulan = $_GET['bulan'];
+     	$tahun = $_GET['tahun'];
+
+     	$bulanTerakhir = $bulan;
+     	$tahunTerakhir = $tahun;
 
      	$user = DB::table('customers')
      	->select('nama', 'telepon', 'alamat')
      	->where('customer_id','=',$id_pelanggan)
      	->get();
 
+     	if ($bulan == 1) {
+     		$tahunTerakhir = $tahun-1;
+     		$bulanTerakhir = 12;
+     	}
+
+     	$pembayaran_terakhir = DB::table('pembayarans')
+     	->select('id_bayar','bulan','tahun','nominal','customer_id','tgl_bayar')
+     	->where('customer_id','=', $id_pelanggan)
+     	->where('bulan','<',$bulanTerakhir)
+     	->where('tahun','=',$tahunTerakhir)
+     	->orderBy('tgl_bayar','desc')
+     	->limit(1)
+     	->get();
+
+     	// echo $pembayaran_terakhir;
+
+     	try{
+     		$tgl_bayar_terakhir = $pembayaran_terakhir[0]->tgl_bayar;
+     		$nominal_terakhir = $pembayaran_terakhir[0]->nominal;
+     		$bulanTerakhir = $pembayaran_terakhir[0]->bulan;
+     		$tahunTerakhir = $pembayaran_terakhir[0]->tahun;
+     	}
+     	catch(Exception $e){
+     		$bulanTerakhir = "-";
+     		$tahunTerakhir = "";
+     		$tgl_bayar_terakhir = "-";
+     		$nominal_terakhir = "-";
+
+     	}
+
+     	
+
+
+
 
      	$alamat = $user[0]->alamat;
-
-     	$bulan = $_GET['bulan'];
-     	$tahun = $_GET['tahun'];
-
 
      	$dateObj   = DateTime::createFromFormat('!m', $bulan);
 		$monthName = $dateObj->format('F'); // March
@@ -249,131 +293,131 @@ class dashboardController extends Controller
      	$timestamp = date("d/M/Y");
 
     	$pdf = App::make('dompdf.wrapper');
-		$pdf->loadHTML('
+
+				$pdf->loadHTML('
 
 						
 
 			<!doctype html>
-<html>
-<head>
-    <meta charset="utf-8">
-    <title>A simple, clean, and responsive HTML invoice template</title>
-    
-    <style>
+			<html>
+			<head>
+			    <meta charset="utf-8">
+			    <title>A simple, clean, and responsive HTML invoice template</title>
+			    
+			    <style>
 
 
-	</style>
-   
-</head>
+				</style>
+			   
+			</head>
 
-<body>
-    
-	<h1 style="text-align:center; color:grey; font-size: 50px; margin-bottom: 0px"> G-NET </h1>
-	<h5 style="text-align:center; margin-top: 10px; margin-bottom: 0px">Dusun Krajan 2, RT 002RW 012, Krajan I, Grenden, Puger, Kabupaten Jember, Jawa Timur 68164</h5>
-	<hr style="height: 2px; background-color: red">
-	<h2 style="text-align:center; "> INVOICE </h2>
+			<body>
+			    
+				<h1 style="text-align:center; color:grey; font-size: 50px; margin-bottom: 0px"> G-NET </h1>
+				<h5 style="text-align:center; margin-top: 10px; margin-bottom: 0px">Dusun Krajan 2, RT 002RW 012, Krajan I, Grenden, Puger, Kabupaten Jember, Jawa Timur 68164</h5>
+				<hr style="height: 2px; background-color: red">
+				<h2 style="text-align:center; "> INVOICE </h2>
 
-	<table style="width: 100%;">
-	
-	  <tr style="border: 0px">
-	    <td style="width: 20%; border: 0px">ID Pelanggan</td>
-	    <td style="border: 0px"> : '.$id_pelanggan.'</td>
-	    
-	  </tr>
-	  <tr>
-	    <td style="border: 0px">Nama Pelanggan</td>
-	    <td style="border: 0px"> : '.$nama_pelangggan.'</td>
-	  
-	  </tr>
-	  <tr>
-	    <td style="border: 0px">Alamat</td>
-	    <td style="border: 0px">: '.$alamat.'</td>
-	  </tr>
-	  <tr>
-	    <td style="border: 0px">Jatuh Tempo</td>
-	    <td style="border: 0px">: 20 '.$monthName.'</td>
-	  </tr>
-	</table>
-	<br>
-	
+				<table style="width: 100%;">
+				
+				  <tr style="border: 0px">
+				    <td style="width: 20%; border: 0px">ID Pelanggan</td>
+				    <td style="border: 0px"> : '.$id_pelanggan.'</td>
+				    
+				  </tr>
+				  <tr>
+				    <td style="border: 0px">Nama Pelanggan</td>
+				    <td style="border: 0px"> : '.$nama_pelangggan.'</td>
+				  
+				  </tr>
+				  <tr>
+				    <td style="border: 0px">Alamat</td>
+				    <td style="border: 0px">: '.$alamat.'</td>
+				  </tr>
+				  <tr>
+				    <td style="border: 0px">Jatuh Tempo</td>
+				    <td style="border: 0px">: 20 '.$monthName.'</td>
+				  </tr>
+				</table>
+				<br>
+				
 
-	<style type="text/css">
-		td, th {
-			  border: 1px solid #dddddd;
-			  text-align: left;
-			  padding: 8px;
-			}
-	</style>
+				<style type="text/css">
+					td, th {
+						  border: 1px solid #dddddd;
+						  text-align: left;
+						  padding: 8px;
+						}
+				</style>
 
-	<h2 style="text-align: center">Pembayaran Terakhir	</h2>
-	<table style="width: 100%;">
-		<tr>
-			<td style="background-color: #e2e2e2">Pembayaran Terakhir</td>
-			<td style="background-color: #e2e2e2">Bulan</td>
-			<td style="background-color: #e2e2e2">Nominal</td>
-		</tr>
-		<tr>
-			<td>12 Januari, 2020</td>
-			<td>Januari 2002</td>
-			<td>100.000</td>
-		</tr>
-	</table>
+				<h2 style="text-align: center">Pembayaran Terakhir	</h2>
+				<table style="width: 100%;">
+					<tr>
+						<td style="background-color: #e2e2e2">Pembayaran Terakhir</td>
+						<td style="background-color: #e2e2e2">Bulan</td>
+						<td style="background-color: #e2e2e2">Nominal</td>
+					</tr>
+					<tr>
+						<td>'.$tgl_bayar_terakhir.'</td>
+						<td>'.$bulanTerakhir.' '.$tahunTerakhir.'</td>
+						<td>'.$nominal_terakhir.'</td>
+					</tr>
+				</table>
 
-	<h2 style="text-align: center">Tagihan Bulan Ini </h2>
-	<table style="width: 100%;">
-		<tr>
-			<td style="background-color: #e2e2e2">Tagihan Bulan Ini</td>
-			<td style="background-color: #e2e2e2">Bulan</td>
-			<td style="background-color: #e2e2e2">Nominal</td>
-		</tr>
-		<tr>
-			<td>12 Januari, 2020</td>
-			<td>Januari 2002</td>
-			<td>100.000</td>
-		</tr>
-		<tr>
-			<td style="border: 0px"></td>
-			<td>Total</td>
-			<td>100.000</td>
-		</tr>
-		<tr>
-			<td style="border: 0px"></td>
-			<td>Terbilang</td>
-			<td>Seratus Ribu Rupiah</td>
-		</tr>
-	</table>
-	<br>
-	<br>
-	<br>
-	<br>
-	<table style="width: 100%">
-		<tr>
-			<td style="border: 0px"></td>
-			<td style="border: 0px"></td>
-			<td style="width: 30%; border: 0px">Admin G-Net</td>
-		</tr>
-		<tr>
-			<td style="border: 0px"></td>
-		</tr>
-		<tr>
-			<td style="border: 0px"></td>
-		</tr>
-		<tr>
-			<td style="border: 0px"></td>
-		</tr>
-		<tr>
-			<td style="border: 0px"></td>
-		</tr>
-		<tr >
-			<td style="border: 0px"></td>
-			<td style="border: 0px"></td>
-			<td style="width: 30%; border: 0px; vertical-align: bottom;">..................................</td>
-		</tr>
-	</table>
+				<h2 style="text-align: center">Tagihan Bulan Ini </h2>
+				<table style="width: 100%;">
+					<tr>
+						<td style="background-color: #e2e2e2" colspan="3">Tagihan Bulan Ini</td>
+						
+					</tr>
+					<tr>
+						
+						<td colspan="2">'.date('F', mktime(0, 0, 0, $bulan, 10)).' '.$tahun.'</td>
+						<td style="width:30%">100.000</td>
+					</tr>
+					<tr>
+						
+						<td colspan="2">Total</td>
+						<td>100.000</td>
+					</tr>
+					<tr>
+				
+						<td colspan="2">Terbilang</td>
+						<td>Seratus Ribu Rupiah</td>
+					</tr>
+				</table>
+				<br>
+				<br>
+				<br>
+				<br>
+				<table style="width: 100%">
+					<tr>
+						<td style="border: 0px"></td>
+						<td style="border: 0px"></td>
+						<td style="width: 30%; border: 0px">Admin G-Net</td>
+					</tr>
+					<tr>
+						<td style="border: 0px"></td>
+					</tr>
+					<tr>
+						<td style="border: 0px"></td>
+					</tr>
+					<tr>
+						<td style="border: 0px"></td>
+					</tr>
+					<tr>
+						<td style="border: 0px"></td>
+					</tr>
+					<tr >
+						<td style="border: 0px"></td>
+						<td style="border: 0px"></td>
+						<td style="width: 30%; border: 0px; vertical-align: bottom;">..................................</td>
+					</tr>
+				</table>
 
 
-</body>
-</html>
+			</body>
+			</html>
 
 
 
@@ -385,6 +429,8 @@ class dashboardController extends Controller
 		// return $pdf->stream();
 		// $pdf->loadView('dashboard');
 		return $pdf->stream();
+
+
     }
 
 }

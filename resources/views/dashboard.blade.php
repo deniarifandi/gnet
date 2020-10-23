@@ -190,6 +190,11 @@
            <input type="text" class="form-control" id="telepon" name="telepon">
          </div>
 
+         <div class="form-group">
+           <label for="Alamat">Alamat</label>
+           <input type="text" class="form-control" id="alamat" name="alamat">
+         </div>
+
        </div>
        <div class="modal-footer">
         <button type="submit" class="btn btn-primary">Submit</button>
